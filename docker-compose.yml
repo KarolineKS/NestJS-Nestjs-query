@@ -1,10 +1,44 @@
 version: '3'
+
 services:
-  postgres:
-    image: 'postgres:9.6.1'
+  api:
+    container_name: api_node
+    build:
+      context: .
+      target: development  
+    volumes:
+      - .:/app  
+      - /app/node_modules 
     ports:
-      - '5432:5432'
+      - "3000:3000"  
     environment:
-      POSTGRES_USER: 'test'
-      POSTGRES_PASSWORD: 'test'
-      POSTGRES_DB: 'test'
+      - DB_HOST=postgres  
+      - DB_PORT=5432
+      - DB_USER=${DB_USERNAME} 
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    networks:
+      - docker-network  
+    depends_on:
+      - postgres 
+
+  postgres:
+    container_name: db_postgres
+    image: postgres:13-alpine  
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD} 
+      POSTGRES_USER: ${DB_USERNAME}      
+      POSTGRES_DB: ${DB_NAME}            
+    ports:
+      - "5432:5432" 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  
+    networks:
+      - docker-network 
+
+networks:
+  docker-network:
+    driver: bridge 
+
+volumes:
+  postgres_data: 
